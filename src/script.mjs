@@ -5,6 +5,12 @@ import { OrbitControls } from 'https://unpkg.com/three@0.124.0/examples/jsm/cont
 import * as THREE from './three.module.js';
 import { lineMP } from '../lineMP.mjs';
 
+const VERMELHO = 0xff0000;
+const AMARELO = 0xffff00;
+
+const CUBO_SIZE = 40;
+const PLAN_SIZE = 21 * CUBO_SIZE;
+
 let camera;
 let scene;
 let renderer;
@@ -13,9 +19,9 @@ let pointer;
 let raycaster;
 let controls;
 
-let rollOverMesh;
-let rollOverMaterial;
-let cubeGeo;
+let mouseMoveMesh;
+let mouseMoveMaterial;
+let clickBox;
 let cubeMaterial;
 
 let pontosFirst;
@@ -32,23 +38,18 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf0f0f0);
 
-  const rollOverGeo = new THREE.BoxGeometry(50, 50, 50);
-  rollOverMaterial = new THREE.MeshBasicMaterial({
+	const mouseMoveGeo = new THREE.BoxGeometry(CUBO_SIZE, 0, CUBO_SIZE);
+	mouseMoveMaterial = new THREE.MeshBasicMaterial({
     color: 0xff0000,
     opacity: 0.5,
     transparent: true,
   });
-  rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
-  scene.add(rollOverMesh);
+	mouseMoveMesh = new THREE.Mesh(mouseMoveGeo, mouseMoveMaterial);
+	scene.add(mouseMoveMesh);
 
-  // cubes
+	clickBox = new THREE.BoxGeometry(CUBO_SIZE, 0, CUBO_SIZE);
 
-  cubeGeo = new THREE.BoxGeometry(50, 50, 50);
-  cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xbaa55 });
-
-  // grid
-
-  const gridHelper = new THREE.GridHelper(1050, 21, 0x000000, 0x00ff00);
+	const gridHelper = new THREE.GridHelper(PLAN_SIZE, 21, 0x000000, 0x00ff00);
   scene.add(gridHelper);
 
   //
@@ -56,7 +57,7 @@ function init() {
   raycaster = new THREE.Raycaster();
   pointer = new THREE.Vector2();
 
-  const geometry = new THREE.PlaneGeometry(1050, 1050);
+	const geometry = new THREE.PlaneGeometry(PLAN_SIZE, PLAN_SIZE);
   geometry.rotateX(-Math.PI / 2);
 
   plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ visible: false }));
@@ -67,7 +68,7 @@ function init() {
   const material2 = new THREE.LineBasicMaterial({ color: 0xff0000 });
   const points = [];
   points.push(new THREE.Vector3(0, 0, 0));
-  points.push(new THREE.Vector3(0, 0, -1050 / 2));
+	points.push(new THREE.Vector3(0, 0, -PLAN_SIZE / 2));
 
   const geometry2 = new THREE.BufferGeometry().setFromPoints(points);
   const line = new THREE.Line(geometry2, material2);
@@ -76,7 +77,7 @@ function init() {
   const material3 = new THREE.LineBasicMaterial({ color: 0x0000ff });
   const points2 = [];
   points2.push(new THREE.Vector3(0, 0, 0));
-  points2.push(new THREE.Vector3(1050 / 2, 0, 0));
+	points2.push(new THREE.Vector3(PLAN_SIZE / 2, 0, 0));
 
   const geometry3 = new THREE.BufferGeometry().setFromPoints(points2);
   const line2 = new THREE.Line(geometry3, material3);
@@ -106,13 +107,11 @@ function init() {
 function calculateLineMP() {
   // addPoint({ x: 3, y: 0 });
   const result = lineMP(
-    { x: pontosFirst.x / 50, y: pontosFirst.z / 50 },
-    { x: pontosLast.x / 50, y: pontosLast.z / 50 },
+	  { x: pontosFirst.position.x / CUBO_SIZE, y: pontosFirst.position.z / CUBO_SIZE },
+	  { x: pontosLast.position.x / CUBO_SIZE, y: pontosLast.position.z / CUBO_SIZE },
   );
   // const expected = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 1 }, { x: 3, y: 1 }];
-  result.forEach((ponto) => {
-    addPoint(ponto);
-  });
+	return result;
 }
 
 function animate() {
@@ -140,73 +139,97 @@ function onPointerMove(event) {
 
   raycaster.setFromCamera(pointer, camera);
 
-  const intersects = raycaster.intersectObjects(objects, false);
-  // console.log({ x, y, intersects });
+	const intersects = raycaster.intersectObjects(objects, false);
 
   if (intersects.length > 0) {
     const intersect = intersects[0];
 
-    rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
-    rollOverMesh.position.divideScalar(50).floor().multiplyScalar(50);
+	  mouseMoveMesh.position.copy(intersect.point).add(intersect.face.normal);
+	  mouseMoveMesh.position.divideScalar(CUBO_SIZE).floor().multiplyScalar(CUBO_SIZE);
+	  mouseMoveMesh.position.y = 0;
   }
 
   render();
 }
 
 function addPoint({ x, y }) {
-  const voxel = new THREE.Mesh(cubeGeo, cubeMaterial);
+	const voxel = new THREE.Mesh(
+		new THREE.BoxGeometry(CUBO_SIZE, CUBO_SIZE / 4, CUBO_SIZE),
+		new THREE.MeshBasicMaterial({
+			color: AMARELO,
+			opacity: 0.4,
+			transparent: true,
+	}),
+  );
   voxel.position.add({
-    x: x *= 50, y: 0, z: y *= 50,
-  }); // .addScalar(25);
+	  x: x *= CUBO_SIZE, y: CUBO_SIZE / 8, z: y *= CUBO_SIZE,
+  });
   scene.add(voxel);
-  objects.push(voxel);
-  console.log('addPoint', voxel.position);
+	objects.push(voxel);
   render();
 }
 function clickPoint() {
-  const voxel = new THREE.Mesh(cubeGeo, new THREE.MeshBasicMaterial({ color: 0xff0000 }));
-  voxel.position.add(rollOverMesh.position);
+	const voxel = new THREE.Mesh(clickBox, new THREE.MeshBasicMaterial({ color: VERMELHO }));
+	voxel.position.add(mouseMoveMesh.position);
   scene.add(voxel);
-  objects.push(voxel);
-  console.log('addPoint', voxel.position);
+	objects.push(voxel);
   render();
 
   if (readyForPoints) {
-    pontosFirst = voxel.position;
+	  pontosFirst = voxel;
     readyForPoints = false;
   } else {
-    pontosLast = voxel.position;
-    calculateLineMP();
+	  pontosLast = voxel;
+	  desenhaPontinhos();
     readyForPoints = true;
   }
 }
 
-function onPointerDown(event) {
-  const x = (event.clientX / window.innerWidth) * 2 - 1;
-  const y = -(event.clientY / window.innerHeight) * 2 + 1;
-  pointer.set(x, y);
+function limpaTela() {
+	objects.forEach((x) => {
+		if (x.geometry.type !== 'PlaneGeometry') {
+			scene.remove(x);
+		}
+	});
+}
 
-  raycaster.setFromCamera(pointer, camera);
+function limpaPontosIniciais() {
+	scene.remove(pontosFirst);
+	scene.remove(pontosLast);
+}
 
-  const intersects = raycaster.intersectObjects(objects, false);
+function desenhaLinhaEntrePontos() {
+	const material = new THREE.LineBasicMaterial({ color: 0x000000 });
+	const points = [];
+	points.push(new THREE.Vector3(
+		pontosFirst.position.x,
+	  0,
+	  pontosFirst.position.z,
+  ));
+	points.push(new THREE.Vector3(
+		pontosLast.position.x,
+	  0,
+	  pontosLast.position.z,
+  ));
 
-  if (intersects.length > 0) {
-    const intersect = intersects[0];
+	const geometry = new THREE.BufferGeometry().setFromPoints(points);
+	const line = new THREE.Line(geometry, material);
+	scene.add(line);
+	objects.push(line);
+}
 
-    console.log({ intersect });
-    const voxel = new THREE.Mesh(cubeGeo, cubeMaterial);
-    voxel.position.copy(intersect.point).add(intersect.face.normal);
-    voxel.position.divideScalar(50).floor().multiplyScalar(50).addScalar(25);
-    scene.add(voxel);
-
-    objects.push(voxel);
-
-    render();
-  }
+function desenhaPontinhos() {
+	limpaPontosIniciais();
+	const drawPoints = calculateLineMP();
+	drawPoints.forEach((ponto) => addPoint(ponto));
+	desenhaLinhaEntrePontos();
 }
 
 function onDocumentKeyDown(event) {
   switch (event.code) {
+	  case 'Backspace':
+		  limpaTela();
+		  break;
     case 'KeyX':
       clickPoint();
       break;
