@@ -17,3 +17,8 @@ press `Backspace` key to clear all lines on the plan
 lineMP has unit tests so one can change it and make sure it does not change the result
 
 run `npm test` in order to execute them
+
+### How to run
+
+as we use threeJs from a CDN, you need to run the folder as a webserver, or you will get CORS error.
+for that, run in the root folder `npx http-server` and navigate to http://localhost:8080 to see the web page
