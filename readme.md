@@ -9,7 +9,8 @@ navigate with the mouse to a point in the plan, click the `X` key once to mark t
 
 press `Backspace` key to clear all lines on the plan
 
-![image](https://user-images.githubusercontent.com/45473/143935688-2045fbb2-4c7a-451e-b4d6-0c1d4fe04ce2.png)
+![image](https://user-images.githubusercontent.com/45473/143938728-1a177db8-1e4c-423e-a57a-9456406dea4c.png)
+
 
 
 ### Unit tests
