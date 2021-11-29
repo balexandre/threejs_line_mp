@@ -66,12 +66,6 @@ function inicializa() {
 	pointer = new THREE.Vector2();
 
 	// plano
-	const geometry = new THREE.PlaneGeometry(PLAN_SIZE, PLAN_SIZE);
-	geometry.rotateX(ROTACAO);
-	plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ visible: false }));
-	scene.add(plane);
-
-	// plano
 	const grid = new THREE.PlaneGeometry(CUBO_SIZE, CUBO_SIZE);
 	const colorir = {
 		PAR: new THREE.LineBasicMaterial({ color: GRID_AZUL, linewidth: 10 }),
@@ -129,6 +123,7 @@ function inicializa() {
 
 	window.addEventListener('resize', onWindowResize);
 }
+
 /**
  * calcula a linha de ponto intermedio usando a funcao externa
  */
@@ -138,6 +133,7 @@ function calculaLineMP() {
 		{ x: pontosLast.position.x / CUBO_SIZE, y: pontosLast.position.z / CUBO_SIZE },
 	);
 }
+
 /**
  * Adiciona o pixel ao plano
  * @param  {object} {x:number} coordenada em X
@@ -159,6 +155,7 @@ function adicionaPixel({ x, y }) {
 	objects.push(pixel);
 	renderiza();
 }
+
 /**
  * desenha o pixel onde o utilizador clicou no plano
  */
@@ -235,13 +232,17 @@ function desenhaPontinhos() {
 	renderiza();
 }
 
+/**
+ * lida com o evento de quando uma tecla e precionada
+ * @param  {ClickEvent} event
+ */
 function onTeclaClick(event) {
 	switch (event.code) {
-		case 'Backspace':
+		case 'Backspace': // tecla Apagar
 			limpaTela();
 			renderiza();
 			break;
-		case 'KeyX':
+		case 'KeyX': // tecla X
 			clicaPixel();
 			break;
 	}
