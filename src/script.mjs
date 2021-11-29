@@ -65,7 +65,13 @@ function inicializa() {
 	raycaster = new THREE.Raycaster();
 	pointer = new THREE.Vector2();
 
-	// plano
+  // plano
+	const geometry = new THREE.PlaneGeometry(PLAN_SIZE, PLAN_SIZE);
+	geometry.rotateX(ROTACAO);
+	plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ visible: false }));
+	scene.add(plane);
+
+  // grelha
 	const grid = new THREE.PlaneGeometry(CUBO_SIZE, CUBO_SIZE);
 	const colorir = {
 		PAR: new THREE.LineBasicMaterial({ color: GRID_AZUL, linewidth: 10 }),
@@ -93,8 +99,8 @@ function inicializa() {
 	coordenadasY.push(new THREE.Vector3(0, 0, -PLAN_SIZE / 2));
 
 	const geometryY = new THREE.BufferGeometry().setFromPoints(coordenadasY);
-	const line = new THREE.Line(geometryY, materialY);
-	scene.add(line);
+	const lineY = new THREE.Line(geometryY, materialY);
+	scene.add(lineY);
 
 	// linha referencial x
 	const materialX = new THREE.LineBasicMaterial({ color: AZUL });
@@ -102,8 +108,8 @@ function inicializa() {
 	coordenadasX.push(new THREE.Vector3(0, 0, 0));
 	coordenadasX.push(new THREE.Vector3(PLAN_SIZE / 2, 0, 0));
 	const geometryX = new THREE.BufferGeometry().setFromPoints(coordenadasX);
-	const line2 = new THREE.Line(geometryX, materialX);
-	scene.add(line2);
+	const lineX = new THREE.Line(geometryX, materialX);
+	scene.add(lineX);
 
 	// renderizacao
 	renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -123,7 +129,6 @@ function inicializa() {
 
 	window.addEventListener('resize', onWindowResize);
 }
-
 /**
  * calcula a linha de ponto intermedio usando a funcao externa
  */
@@ -133,7 +138,6 @@ function calculaLineMP() {
 		{ x: pontosLast.position.x / CUBO_SIZE, y: pontosLast.position.z / CUBO_SIZE },
 	);
 }
-
 /**
  * Adiciona o pixel ao plano
  * @param  {object} {x:number} coordenada em X
@@ -144,10 +148,10 @@ function adicionaPixel({ x, y }) {
 		new THREE.BoxGeometry(CUBO_SIZE, CUBO_SIZE / 4, CUBO_SIZE),
 		new THREE.MeshBasicMaterial({
 			color: AMARELO,
-			opacity: 0.4,
-			transparent: true,
-		}),
-	);
+		opacity: 0.7,
+		transparent: true,
+	}),
+  );
 	pixel.position.add({
 		x: x *= CUBO_SIZE, y: CUBO_SIZE / 8, z: y *= CUBO_SIZE,
 	});
@@ -155,7 +159,6 @@ function adicionaPixel({ x, y }) {
 	objects.push(pixel);
 	renderiza();
 }
-
 /**
  * desenha o pixel onde o utilizador clicou no plano
  */
@@ -225,7 +228,7 @@ function desenhaLinhaEntrePontos() {
  * desenha os pixels entre o ponto inicial e o de fim
  */
 function desenhaPontinhos() {
-	limpaPontosIniciais();
+	// limpaPontosIniciais(); // remover comentario, caso pretenda apagar pontos de inicio e fim da linha
 	const drawPoints = calculaLineMP();
 	drawPoints.forEach((ponto) => adicionaPixel(ponto));
 	desenhaLinhaEntrePontos();
@@ -264,12 +267,12 @@ function onMovimentoPonteiro(event) {
 	if (intersects.length > 0) {
 		const intersect = intersects[0];
 
-		if (intersect.face.normal) {
-			mouseMoveMesh.position.copy(intersect.point).add(intersect.face?.normal);
-			mouseMoveMesh.position.divideScalar(CUBO_SIZE).floor().multiplyScalar(CUBO_SIZE);
-			mouseMoveMesh.position.y = 0;
-		}
-	}
+	  if (intersect.face.normal) {
+		  mouseMoveMesh.position.copy(intersect.point).add(intersect.face?.normal);
+		  mouseMoveMesh.position.divideScalar(CUBO_SIZE).floor().multiplyScalar(CUBO_SIZE);
+		  mouseMoveMesh.position.y = 0;
+	  }
+  }
 
 	renderiza();
 }
