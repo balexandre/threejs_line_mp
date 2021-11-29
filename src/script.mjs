@@ -129,6 +129,7 @@ function inicializa() {
 
 	window.addEventListener('resize', onWindowResize);
 }
+
 /**
  * calcula a linha de ponto intermedio usando a funcao externa
  */
@@ -138,6 +139,7 @@ function calculaLineMP() {
 		{ x: pontosLast.position.x / CUBO_SIZE, y: pontosLast.position.z / CUBO_SIZE },
 	);
 }
+
 /**
  * Adiciona o pixel ao plano
  * @param  {object} {x:number} coordenada em X
@@ -159,6 +161,7 @@ function adicionaPixel({ x, y }) {
 	objects.push(pixel);
 	renderiza();
 }
+
 /**
  * desenha o pixel onde o utilizador clicou no plano
  */
